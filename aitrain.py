@@ -12,8 +12,8 @@ import numpy as np
 
 def create_population(population_size: int, hidden_size: int, supervised_model: SimpleMLP) -> List[pongAgent]:
     population = [pongAgent(hidden_size=hidden_size) for _ in range(population_size)]
-    for agent in population:
-        agent.model.load_state_dict(supervised_model.state_dict())
+    #for agent in population:
+    #    agent.model.load_state_dict(supervised_model.state_dict())
     return population
 
 def evaluate_fitness(agent: pongAgent) -> int:
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     criterion = nn.BCELoss()
     optimizer = optim.Adam(agent.model.parameters(), lr=0.01)
 
-    supervisedEarlyStopping(agent.model,dataloader,patience=50, num_epochs=3000)
+    #supervisedEarlyStopping(agent.model,dataloader,patience=50, num_epochs=3000)
 
     dump(agent, open("best_model.pk","wb"))
 

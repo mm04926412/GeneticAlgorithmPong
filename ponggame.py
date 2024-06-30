@@ -119,6 +119,37 @@ def runGameAgent(agent):
 
     pygame.quit()
 
+def runGameManualAI(agent):
+    pygame.init()
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Single Player Pong")
+
+    game = Game()
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        if game.paddle_x < game.ball_x:
+            game.update(left=False, right=True)
+        else:
+            game.update(left=True, right=False)
+
+        # Drawing
+        screen.fill((0, 0, 0))
+        pygame.draw.rect(screen, (255, 255, 255), (game.paddle_x, SCREEN_HEIGHT - PADDLE_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT))
+        pygame.draw.rect(screen, (255, 255, 255), (game.ball_x, game.ball_y, BALL_SIZE, BALL_SIZE))
+        
+        font = pygame.font.Font(None, 36)
+        score_text = font.render(f"Score: {game.score}", True, (255, 255, 255))
+        screen.blit(score_text, (10, 10))
+
+        pygame.display.flip()
+
+    pygame.quit()
+
 def runLogicAgent(agent,frames=1000):
     game = Game()
     oldBallY = SCREEN_HEIGHT
