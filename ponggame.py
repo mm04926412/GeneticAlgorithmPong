@@ -1,6 +1,8 @@
 import pygame
 import random
 import model
+import pandas as pd
+from time import sleep
 
 # Game constants
 SCREEN_WIDTH = 800
@@ -23,9 +25,9 @@ class Game:
     def update(self,left = False, right = False):
         # Move the paddle
         if left:
-            self.paddle_x = max(0, self.paddle_x - 5)
+            self.paddle_x = max(0, self.paddle_x - 10)
         if right:
-            self.paddle_x = min(SCREEN_WIDTH - PADDLE_WIDTH, self.paddle_x + 5)
+            self.paddle_x = min(SCREEN_WIDTH - PADDLE_WIDTH, self.paddle_x + 10)
 
         # Move the ball
         self.ball_x += self.ball_dx
@@ -52,20 +54,26 @@ class Game:
             self.ball_dx = random.choice([-1, 1]) * BALL_SPEED
             self.ball_dy = BALL_SPEED
 
-def runGameHuman():
+def runGameHuman(log = False):
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Single Player Pong")
+    pygame.display.set_caption("AI Pong")
 
     game = Game()
 
     running = True
+
+    if log:
+        state_timeline = pd.DataFrame(columns=["ball_x","ball_y","ball_dx","ball_dy","paddle_x","leftHeld","RightHeld"])
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
         keys = pygame.key.get_pressed()
+        if log:
+            state_timeline.loc[len(state_timeline)] = [game.ball_x,game.ball_y,game.ball_dx,game.ball_dy,game.paddle_x,keys[pygame.K_LEFT],keys[pygame.K_RIGHT]]
         game.update(left=keys[pygame.K_LEFT], right=keys[pygame.K_RIGHT])
 
         # Drawing
@@ -76,9 +84,10 @@ def runGameHuman():
         font = pygame.font.Font(None, 36)
         score_text = font.render(f"Score: {game.score}", True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
-
+        sleep(1/60)
         pygame.display.flip()
-
+    if log:
+        state_timeline.to_csv("playerOutput.csv")
     pygame.quit()
 
 def runGameAgent(agent):
@@ -95,7 +104,7 @@ def runGameAgent(agent):
                 running = False
 
         keys = agent.getOutput(game)
-        game.update(left=keys[0] > 0, right=keys[1] > 0)
+        game.update(left=keys[0] > 0.5, right=keys[1] > 0.5)
 
         # Drawing
         screen.fill((0, 0, 0))
@@ -112,9 +121,13 @@ def runGameAgent(agent):
 
 def runLogicAgent(agent,frames=1000):
     game = Game()
+    oldBallY = SCREEN_HEIGHT
     for _ in range(frames):
         keys = agent.getOutput(game)
-        game.update(left=keys[0] > 0, right=keys[1] > 0)
+        game.update(left=keys[0] > 0.5, right=keys[1] > 0.5)
+        ballY = game.ball_y
+        if ballY > oldBallY+100:
+            return game
     return game
 
 
