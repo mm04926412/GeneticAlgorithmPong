@@ -4,6 +4,7 @@ import model
 import pandas as pd
 from time import sleep
 
+
 # Game constants
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -18,7 +19,7 @@ class Game:
         self.paddle_x = SCREEN_WIDTH // 2 - PADDLE_WIDTH // 2
         self.ball_x = SCREEN_WIDTH // 2
         self.ball_y = SCREEN_HEIGHT // 2
-        self.ball_dx = random.choice([-1, 1]) * BALL_SPEED
+        self.ball_dx = random.choice([-1, 1]) * BALL_SPEED * random.uniform(0,1)
         self.ball_dy = BALL_SPEED
         self.score = 0
 
@@ -45,13 +46,14 @@ class Game:
         # Ball collision with paddle
         if (self.ball_y >= SCREEN_HEIGHT - PADDLE_HEIGHT - BALL_SIZE and
             self.paddle_x < self.ball_x < self.paddle_x + PADDLE_WIDTH):
-            self.ball_dy *= -1
+            self.ball_dy = -BALL_SPEED
+            self.ball_dx = min(max(self.ball_dx + random.uniform(-3,3) + right - left,-5),5)
 
         # Reset ball if it goes below the paddle
         if self.ball_y > SCREEN_HEIGHT:
             self.ball_x = SCREEN_WIDTH // 2
             self.ball_y = SCREEN_HEIGHT // 2
-            self.ball_dx = random.choice([-1, 1]) * BALL_SPEED
+            self.ball_dx = random.choice([-1, 1]) * BALL_SPEED * random.uniform(0,1)
             self.ball_dy = BALL_SPEED
 
 def runGameHuman(log = False):
@@ -104,7 +106,8 @@ def runGameAgent(agent):
                 running = False
 
         keys = agent.getOutput(game)
-        game.update(left=keys[0] > 0.5, right=keys[1] > 0.5)
+        print(keys)
+        game.update(left=keys[0] < 0.5, right=keys[0] >= 0.5)
 
         # Drawing
         screen.fill((0, 0, 0))
@@ -155,7 +158,7 @@ def runLogicAgent(agent,frames=1000):
     oldBallY = SCREEN_HEIGHT
     for _ in range(frames):
         keys = agent.getOutput(game)
-        game.update(left=keys[0] > 0.5, right=keys[1] > 0.5)
+        game.update(left=keys[0] < 0.5, right=keys[0] >= 0.5)
         ballY = game.ball_y
         if ballY > oldBallY+100:
             return game

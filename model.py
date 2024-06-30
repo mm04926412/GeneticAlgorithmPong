@@ -31,7 +31,7 @@ class pongAgent():
 
     def __init__(self,hidden_size=16):
         #Input: [ball_x, ball_y, ball_x, ball_dy, paddle_x]
-        self.model = SimpleMLP(5,hidden_size,2)
+        self.model = SimpleMLP(5,hidden_size,1)
         self.model.eval()
     
     def getOutput(self,game):

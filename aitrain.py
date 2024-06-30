@@ -1,7 +1,7 @@
 import random
 import torch
 from model import pongAgent,SimpleMLP
-import ponggame
+import pongGame
 from typing import List
 from pickle import dump, load
 import pandas as pd
@@ -12,12 +12,12 @@ import numpy as np
 
 def create_population(population_size: int, hidden_size: int, supervised_model: SimpleMLP) -> List[pongAgent]:
     population = [pongAgent(hidden_size=hidden_size) for _ in range(population_size)]
-    #for agent in population:
-    #    agent.model.load_state_dict(supervised_model.state_dict())
+    for agent in population:
+        agent.model.load_state_dict(supervised_model.state_dict())
     return population
 
 def evaluate_fitness(agent: pongAgent) -> int:
-    final_state = ponggame.runLogicAgent(agent)
+    final_state = pongGame.runLogicAgent(agent)
     return final_state.score
 
 def select_parents(population: List[pongAgent], fitness_scores: List[int], num_parents: int) -> List[pongAgent]:
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     # Hyperparameters
     POPULATION_SIZE = 50
     HIDDEN_SIZE = 16
-    NUM_GENERATIONS = 20
+    NUM_GENERATIONS = 100
     NUM_PARENTS = 10
     MUTATION_RATE = 0.1
     MUTATION_STRENGTH = 0.1
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     df = pd.read_csv("balanced_playerOutput.csv")
 
     train = df[["ball_x","ball_y","ball_dx","ball_dy","paddle_x"]].to_numpy()
-    labels = df[["leftHeld","RightHeld"]].to_numpy()
+    labels = df[["RightHeld"]].to_numpy()
     agent = pongAgent(hidden_size=HIDDEN_SIZE)
 
     train_tensor = torch.tensor(train, dtype=torch.float32)
@@ -117,13 +117,13 @@ if __name__ == '__main__':
     dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
     criterion = nn.BCELoss()
-    optimizer = optim.Adam(agent.model.parameters(), lr=0.01)
+    optimizer = optim.Adam(agent.model.parameters(), lr=0.001)
 
-    #supervisedEarlyStopping(agent.model,dataloader,patience=50, num_epochs=3000)
+    supervisedEarlyStopping(agent.model,dataloader,patience=100, num_epochs=3000)
 
-    dump(agent, open("best_model.pk","wb"))
+    dump(agent, open("bestModel.pk","wb"))
 
     best_agent = genetic_algorithm(POPULATION_SIZE, HIDDEN_SIZE, NUM_GENERATIONS, NUM_PARENTS, MUTATION_RATE, MUTATION_STRENGTH,agent.model)
     final_score = evaluate_fitness(best_agent)
     print(f"Final best agent score: {final_score}")
-    dump(best_agent, open("best_model.pk","wb"))
+    dump(best_agent, open("bestModel.pk","wb"))
